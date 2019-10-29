@@ -1,0 +1,119 @@
+---
+title: "Crecimiento denso-independiente"
+author: "Carlos Iván Espinosa"
+date: "Noviembre 2015"
+output: pdf_document
+---
+
+#Modelando datos: Simulando la dinámica
+
+Hasta ahora lo que hemos trabajado es con modelos deterministas usando Rpromedio. Otra aproximación es simular la dinámica de la población
+
+#El proyectar el crecimiento de la población debería incluir alguna 
+#cuantificación de incertidumbre
+
+#Una forma para incluir esta incertidumbre es analizar los datos y utilizarlos
+#para calcular parámetros del modelo de forma aleatoria.
+
+#antes utilizamos una media geométrica de lamda pero esa media tenia una 
+#variación. Podriamos utilizar esa variación como una medida aleatoria y proyectar
+#la población.  
+
+###Miremos los datos
+
+library(primer)
+data("sparrows")
+
+names(sparrows)
+
+attach(sparrows)
+
+plot(Year, Count, type="b", pch=19)
+
+##Que pasa con la lamda
+obs.R <- Count[-1]/Count[-length(Count)]
+plot(Year[-1], obs.R, pch=19)
+abline(h = 1, lty = 3)
+
+##Que pasa con la tasa de crecimiento?
+
+###################
+#Vamos a simular
+
+years<- 50
+set.seed(3)
+sim.Rs <- sample(x = obs.R, size = years, 
+                 replace = TRUE)
+
+##Ahora tenemos nuestra tasa de incremento para cada año
+
+#Generamos un vector para poder poner nuestra predicción
+
+output <- numeric(years + 1)
+
+output[1] <- Count[Year == max(Year)]
+for (t in 1:years) output[t + 1] <- { 
+  output[t] * sim.Rs[t] }
+
+plot(0:years, output, type="l")
+
+##Repitamos el proceso pero ahora sin utilizar set.seed
+##Que paso?
+
+##Ahora vamos a realizar 10 simulaciones
+sims <- 10 
+
+sim.RM <- matrix(sample(obs.R, sims * years, 
+                        replace = TRUE), 
+                 nrow = years, ncol = sims)
+
+output[1] <- Count[Year == max(Year)]
+outmat <- sapply(1:sims, function(i) { 
+  for (t in 1:years) output[t + 1] <- 
+    output[t] * sim.RM[t, i]
+                output
+              })
+
+matplot(0:years, outmat, type = "l", log = "y") 
+
+#################
+
+PopSim <- function(Rs, N0, years = 50, sims = 10) { 
+              sim.RM = matrix(sample(Rs, size = sims * years, replace = TRUE), 
+                                    nrow = years, ncol = sims)
+             output <- numeric(years + 1) 
+             output[1] <- N0 
+             outmat <- sapply(1:sims, function(i) {
+                        for (t in 1:years) output[t + 1] <- round(output[t] * 
+                                                  sim.RM[t, i], 0)
+                                          output
+                                                 })  
+                   return(outmat) 
+                    }
+
+###########################
+output <- PopSim(Rs = obs.R, N0 = 13, sims = 1000)
+matplot(output, type="l")
+dim(output)
+
+#Extraemos el tamaño de la población en el último año2053
+
+N.2053 <- output[51, ]
+summary(N.2053, digits = 6)
+
+##Grafiquemos los datos y veamos su ditribución
+##Adicionamos ademas los limites de un intervalo de confianza del 95%
+##Excluimos los extremos
+
+hist(N.2053, main = "N") 
+hist(log10(N.2053 + 1), main = "log(N+1)") 
+abline(v = log10(quantile(N.2053, prob = c(0.0275, 0.975))
+                                      + 1), lty = 3)
+
+
+Problemas
+1.1. Crecimiento geométrico Analizar los datos siguientes, basándose en las mascotas seleccionados snip- de código anterior. (a) En los años 1996 a 2005, los tamaños de población de lirio son N = 150, 100, 125, 200, 225, 150, 100, 175, 100, 150. Haz una gráfica del tamaño de la población en función del tiempo. (b) Calcular R para cada año; gráfico de R frente al tiempo. (c) Calcular la aritmética y las tasas de crecimiento medias geométricas de esta población. (d) Sobre la base de la tasa media de crecimiento apropiado, ¿cuál sería el tamaño de la población se espera en 2025? ¿Cuál sería el tamaño estimado de la población sea si ha utilizado la media inapropiado? No utilizar la simulación para esto. (d *) Teniendo en cuenta estos datos, desarrollar simulaciones que el anterior con la función definida por el usuario, PopSim. Describir la distribución de los tamaños de población proyectados para 2010.
+1.2.
+
+
+

@@ -1,0 +1,498 @@
+---
+title: "Crecimiento Denso-independiente"
+author: "Carlos Iván Espinosa"
+date: "21 de octubre de 2019"
+output: 
+  html_document:
+    fig_caption: yes
+    highlight: haddock
+    number_sections: yes
+    theme: united
+    toc: yes
+    toc_float:
+      smooth_scroll: no
+  runtime: shiny
+---
+
+#Introducción
+
+La dinámica de la población es una de las características más importantes de una población, los cambios en el tamaño poblacional resumen muchos de los procesos que se dan al interior de la comunidad. El tamaño poblacional está asociado a las tasas de natalidad y mortalidad, así como a las emigraciones e inmigraciones. Comprender como la población cambia en el tiempo es fundamental para poder desarrollar acciones de manejo de especies protegidas o en peligro de extinción.
+
+Uno de los modelos más básicos de crecimiento poblacional es el __crecimiento denso-independiente__, este crecimiento básicamente postula que la tasa de incremento _per capita_ no tiene dependencia estadística del tamaño de la población. En otras palabras, las tasas de natalidad y mortalidad de un individuo son independientes de número de individuos que tenga la población. Aunque biológicamente esto parezca que no tiene mucho sentido, el modelo de crecimiento denso-independiente propone que es necesario que aunque haya una influencia esta sea estadísticamente detectable. El poder de detectar una relación significativa depende, en parte, de aquellos factores que gobiernan el poder en las relaciones estadísticas entre dos variables continuas: el número de observaciones y el rango de la variable predictora. Por lo tanto, nuestra conclusión de que una población en particular exhibe un crecimiento independiente de la densidad, puede ser trivial si nuestro tamaño de muestra es pequeño (es decir, pocas generaciones muestreadas), o si muestreamos la población en un rango muy estrecho de densidades. 
+
+#Crecimiento geométrico discreto
+
+En un bosque natural se ha reportado la llegada de una especie de mariposa introducida, es importante realizar el seguimiento de esta población con el fin de evaluar los posibles efectos sobre la diversidad local. Estas mariposas tienen un ciclo de vida de 3 meses, así que se ha decidido muestrear el bosque cada tres meses con el fin de evaluar los cambios en el tamaño poblacional. Luego de 13 meses de seguimiento tenemos datos tamaño poblacional de esta especie en 5 periodos distintos. Vamos a ver que nos dice esta información.
+
+```{r}
+
+#Tamaño de la mariposa durante los 13 meses
+N<- c(2,4,8,16,32)
+
+#Tiempo en el cual se hizo la observación
+tiempo <- seq(as.POSIXct("2018-01-15"),as.POSIXct("2019-02-15"), by=60*60*24*30*3)
+
+plot(tiempo, N, type="b", 
+     xlab="Meses de muestreo", 
+     ylab="Tamaño. N")
+```
+
+Vemos que aparentemente la población está creciendo, aparentemente ese crecimiento es más grande cada vez.  Una forma de ver la tasa a la cual está creciendo la población es dividiendo el tamaño poblacional en el tiempo dos para el tamaño en el tiempo uno. 
+
+$$tasa = (N_{t+1}/N_t)$$
+
+Según esta fórmula, la tasa de incremento en el primer periodo sería 4/2, lo que nos daría una tasa de 2. Ahora veamos para todos los periodos.
+
+
+```{r}
+#Dividimos el tamaño del periodo posterior para el anterior
+tasa <- N[2:5]/N[1:4]
+tasa
+
+```
+
+Como vemos, el crecimiento de la población tiene una tasa de incremento de dos en todos los periodos. No es como pensábamos que la población está creciendo más cada año, la tasa de incremento se ha mantenido constante a lo largo de los 13 meses de seguimiento de la población. Esta tasa implica que la población se duplica cada año, esta aseveración la podríamos marcar como:
+
+$$N_{abril} = 2 * N_{enero}$$
+
+$$\frac{N_{abril}}{N_{enero}} = 2$$
+
+Podemos generalizar esta formula como: 
+
+$$N_{t+1} = \lambda * N_t$$
+
+$$\frac{N_{t+1}}{N_{t}} = \lambda$$
+
+##Proyección de la población
+
+Ahora podemos utilizar la fórmula que derivamos para proyectar la población. Veamos primero la proyección de la población por cada periodo, en el caso del ejemplo de las mariposas cada 3 meses.
+
+
+$$N_{abril} = 2 * N_{enero}$$
+$$N_{julio} = 2 * N_{abril} = 2 * (2 * N_{enero})$$
+$$N_{octubre} = 3 * N_{julio} = 2 * (2 * N_{abril})= 2 * (2 * (2 * N_{enero}))$$
+
+Como vemos podemos utilizar cualquier momento de la población, únicamente es necesario que lo multipliquemos por tantos ciclos queremos proyectar, así de enero a octubre hay tres ciclos por lo que la tasa de crecimiento deberíamos multiplicarla tres veces: 2 x 2 x 2 o lo que es lo mismo $2^2$, así la tasa se eleva a la cantidad de ciclos que queremos proyectar la población. Ahora podemos generalizar e incluir en nuestra formula como:
+
+
+$$N_{t+1} = \lambda^t * N_t$$
+ 
+ Veamos si nuestra fórmula nos permite proyectar la población de las mariposas.
+ 
+ 
+
+```{r}
+
+# hacemos una función para calcular el tamaño de la población
+crec <- function(lambda, t, N){
+          N <- lambda^t * N
+       return(N) 
+}
+
+##Proyectemos a cuatro periodos y comparemos con la población
+crec(2,4,2)
+N
+
+##Qué pasará en 3 años con 12 periodos
+
+crec(2,12,2)
+```
+
+Efectivamente en 12 periodos pasaremos de 2 a 8192 individuos de mariposas. Con nuestro modelo podríamos predecir el tamaño de la población para los periodos que nos interese. Como vemos el incremento de la población puede ser muy importante, pero ¿qué variables pueden generar cambios en el crecimiento? El tamaño poblacional inicial y la tasa de incremento per capita pueden tener importantes efectos en el crecimiento.
+
+##Efecto del tamaño inicial
+
+Nuestra población de mariposas se está duplicando en cada periodo, esto implica que la magnitud del crecimiento es cada vez mayor, crece de una forma geométrica. Pensemos, una población inicial de 10 individuos se duplica al cabo de un periodo, implicaría que tendríamos 20 individuos, la población se incrementó en 10 individuos. Sin embargo, la duplicación de una población inicial de 20 individuos implicaría un incremento de 20 individuos. Como vemos la magnitud del incremento es diferente dependiendo del tamaño de la población inicial.
+
+```{r}
+
+N0 <- c(10,20, 30) #tres tamaños distintos
+t <- c(0:6) #seis periodos
+Nm <- matrix(NA,7,3) 
+
+for(i in 1:3){
+Nm[,i] <- crec(2,t=t, N=N0[i])
+}
+matplot(Nm, type="b")
+
+```
+
+
+Como vemos al parecer las poblaciones crecen a ritmos diferentes, la población 1 crece más lentamente que la población 3, y esto se hace más evidente en cada ciclo. Pero realmente las poblaciones están creciendo a una tasa distinta. Para responder esta pregunta podemos log-transformar los datos y observar si la tasa de crecimiento es distinta.   
+
+```{r}
+
+matplot(log(Nm), type="b")
+
+```
+
+Como podemos ver en esta gráfica las curvas de crecimiento realmente son paralelas, las tres poblaciones están creciendo a una tasa similar. Aunque cambia el intercepto (donde inicia la población) los cambios son lineares en las tres poblaciones.
+
+
+##Efecto de la tasa de incremento ($\lambda$)
+
+Como hemos visto lambda actúa directamente sobre la población, por lo que los cambios en la tasa _per capita_ tienen un fuerte efecto sobre el crecimiento de la población. Cuando lambda tiene valores inferiores a 1 la población decrece, mientras que con valores superiores a 1 la población se incrementa, con valores de 1 la población se mantiene constante.
+
+
+```{r}
+lam <- c(0.5,1, 1.5) #tres tamaños distintos
+t <- c(0:4) #seis periodos
+Lm <- matrix(NA,5,3) 
+
+for(i in 1:3){
+Lm[,i] <- crec(lambda = lam[i],t=t, N=10)
+}
+matplot(Lm, type="b")
+
+text(2.5,30, "lambda>1 - Pob. Crece")
+text(2,0, "lambda<1 - Pob. Decrece")
+text(4,12, "lambda>1 - Pob. se mantiene")
+
+```
+
+##Tasa promedio de crecimiento
+
+Aunque en el ejemplo de las mariposas que hemos utilizado, la población crece a una tasa constante la verdad es que en la naturaleza esto no necesariamente sucede, diversos procesos pueden afectar el crecimiento durante un momento dado, por lo que la población puede cambiar en su crecimiento.  Pero, si la tasa de incremento per capita es variable, que dato uso para proyectar la población. 
+
+Una forma que podemos hacer es usar el valor medio de los diferentes periodos.  
+
+```{r}
+
+#Nuestros datos
+ninfalidos <- c(100, 50, 75)
+
+#obtengamos lambda
+ninL <- ninfalidos[2:3]/ninfalidos[1:2]
+ninL
+
+#obtenemos la media
+xL <- mean(ninL)
+
+#usamos nuestra función 
+crec(lambda = xL, t = 3,N = 100)
+
+#según nuestro modelo deberíamos tener 100 individuos, pero 
+#realmente tenemos 75, nuestro modelo no funcionó
+```
+
+Como vemos la media aritmética no es la mejor medida para poder proyectar la comunidad.  Una medida que se ajusta mejor es la media geométrica. 
+
+```{r}
+#calculamos la media aritmética
+xgL <- prod(ninL)^(1/3)
+
+#usamos nuestra función 
+crec(lambda = xgL, t = 3,N = 100)
+
+```
+
+En este caso la media geométrica calculada como el producto de los valores de lambda para cada periodo y elevada a 1 dividido para t (t es tiempo, el número de periodos) mostró ser mejor medida para proyectar nuestra población.
+
+#Ejercicio 1
+
+Vamos a utilizar datos _sparrows_ que están anclados en el paquete __primer__. Estos datos corresponden a conteos anuales de gorriones (_Melospiza melodia_) en Darrtown, OH, USA. por Sauer, J. R., J.E. Hines, and J. Fallon. 2005. Estos datos corresponden a conteos anuales desde 1966 hasta 2005, en total 36 años.
+
+```{r, warning=FALSE, message=FALSE}
+library(primer)
+data(sparrows)
+head(sparrows, 5)
+```
+
+Utilizaremos estos datos para justar un modelo de crecimiento geométrico. Nos interesa evaluar en qué medida el modelo de crecimiento geométrico se ajusta a lo que le paso a la población de gorriones. Siga los siguientes pasos para construir el modelo.
+
+a. Utilice los cinco primeros años para obtener los datos de lambda ($\lambda$) y calcule la media geométrica
+b. Construya un modelo de crecimiento y proyecte la población a los 31 años.
+c. El tamaño inicial N0 es igual al tamaño de la población en el año 5 (1971). Copie el tamaño de los primeros años de la población original, al final debe tener un vector con 36 años.
+d. Repita el procedimiento pero esta vez para obtener los datos de lambda utilice 10 años y proyecte la población 26 años.
+e. El tamaño inicial para la segunda proyección debe ser en el año 10 (1976). . Copie los primeros años de la población original, al final debe tener un vector con 36 años.
+
+```
+Use el siguiente código para hacer los gráficos
+
+plot(sparrows$Year, sparrows$Count, type="l")
+lines(sparrows$Year, proy1) #proy1 es la proyección 1
+lines(sparrows$Year, proy2) #proy2 es la proyección 2
+```
+
+Ahora puede explorar que sucede si usamos diferente número años para generar el modelo y explorar que es lo que pasa con la población de gorriones.
+
+```{r, echo=FALSE, fig.cap="Grafica de crecimiento de gorriones en Darrtown. OH. La línea negra muestra el crecimiento real de la población, la línea roja muestra la proyección de la población. Finalmente la línea azul muestra los datos usados para el modelo."}
+
+inputPanel(
+  sliderInput("Lm", label = "Lambda:",
+              min = 5, max = 26, value = 5, step = 2)
+  )
+
+renderPlot({
+  
+  popSp <- sparrows[1:input$Lm,2]
+  lambdaSp <- popSp[2:input$Lm]/popSp[1:input$Lm-1]
+  lamSppg <- prod(lambdaSp)^(1/input$Lm)
+  
+  proy1 <- crec(lambda = lamSppg, t = 1:(36-input$Lm), N =                 sparrows[input$Lm,2])
+  proy1 <- c(sparrows$Count[1:input$Lm], proy1)
+
+  plot(sparrows$Year, sparrows$Count, type="l", ylim=c(0,220), xlab="Años", ylab="Abundancia")
+  lines(sparrows$Year, proy1, col ="darkred", ldw=1.4)
+  lines(sparrows$Year[1:input$Lm], proy1[1:input$Lm], col ="darkblue", ldw=1.4)
+  mtext("Crecimiento de gorriones en Darrtown, OH", side=3, adj=0, line=0.7, cex=2, font=2)
+         }
+)
+
+```
+
+
+Conteste las siguientes preguntas:
+
+1. Los resultados obtenidos se aproximan al tamaño poblacional de los gorriones.
+2. Mejoró en algo tener más años para obtener los datos de la media de lambda.
+
+******
+
+#Crecimiento exponencial continuo
+
+El modelo que propusimos antes, propone el crecimiento de la población como una serie de eventos reproductivos, así cada ciclo la población se reproduce en un único evento. Aunque esta aproximación ha sido utilizada para estudiar poblaciones de varios grupos, no en todos los casos ha tenido un buen ajuste. El problema principal está en que las poblaciones no crecen a saltos y realmente las poblaciones tienen múltiples eventos de reproducción. 
+
+Vamos a ver un ejemplo y comprender que implicaciones tiene este cambio de un único evento reproductivo o varios eventos. Usaremos como ejemplo una bacteria muy conocida la _Escherichia coli_. Imaginemos que ponemos en una caja petri 1000 individuos de _E. coli_ y al siguiente día contamos la cantidad de bacterias y tenemos $10^10$ bacterias, eso implicaría que las bacterias tienen una tasa de incremento (lambda) de $10^7$ por día. Pero esto no es tan cierto, el ciclo de las bacterias no es de un día, posiblemente es cercano a minutos, además las bacterias están reproduciéndose continuamente y de forma asíncrona. Como vemos el crecimiento geométrico no se acopla a esta realidad.
+
+Hace mucho atrás Jacob Bernulli (1654), se dio cuenta que el crecimiento geométrico depende de la periodicidad que asumimos que ocurren los ciclos reproductivos. Así una población que se incremente a una tasa de $\lambda = 1.5$ anualmente, implicaría que la población incremente el 50% cada año, por lo que su __tasa de incremento discreto__ es $r_d = 0.5$. Pero que sucedería si en el año en vez de tener un periodo reproductivo tenemos dos, eso implicaría que esta tasa debería ser dividida para 2 y el resultado debería ser elevado para el número de ciclos que se dan en el año (2). De esta forma pasaríamos del modelo de crecimiento con un ciclo anual a un modelo con dos ciclos.
+
+$$N_1 = N_0(1+0.5)$$ 
+$$N_1 = N_0(1+05/2)^2$$ 
+
+Podríamos generalizar como:
+
+$$N1 = N_0\biggl(1+  \frac{r_d}{n}\biggr)^n$$
+$$\frac{N1}{N0} = \biggl(1+  \frac{r_d}{n}\biggr)^n$$
+Ahora que pasa si los ciclos de reproducción son continuos, o infinitos periodos durante el año. 
+
+```{r}
+n <- 1:100 #entre 1 y 100 periodos en el año
+N0 <- 1 #población inicial de 1
+rd <- 1 #tasa de incremento discreto
+
+#Calculamos el tamaño de la población
+N1 <- N0 * (1 + rd/n)^n
+
+#Graficamos los datos
+plot(n, N1/N0, type = "l")
+text(50, 2, "For n = 100,") 
+text(50, 1.6, bquote((1 + frac("r"["d"], "n"))^"n" == + .(round(N1[101]/N0, 3))))
+
+```
+
+Como vemos cuando incrementamos el número de eventos reproductivos llegamos a una constante que es 2.718. Podemos usar esta constante para modificar el crecimiento discreto de la población y transformar a un crecimiento continuo. De esta forma podemos generalizar el crecimiento exponencial y representarlo como:
+
+$$N_t = N_0e^{rt}$$
+en este caso r es la tasa intrínseca de crecimiento.
+
+Veamos como podemos ajustar un modelo de crecimiento exponencial continuo.
+
+```{r}
+#nuestra población
+mariposas <- c(10, 25, 89, 160, 312)
+
+#obtenemos lambda
+lamM <- mariposas[2:5]/mariposas[1:4]
+
+#convertimos lambda en r
+rM <- log(lamM)
+
+##Hacemos una función de crecimiento exponencial
+crecE <- function(N0,r,t ){
+  N <- N0*exp(r*t)
+  return(N)
+}
+
+#obtenemos la media aritmética de r
+rMx <- prod(rM)^1/4
+
+#proyectamos la población
+
+marCrecE <- crecE(N0=15, r = rMx, t = 1:50)
+plot(marCrecE, type="l")
+
+```
+
+##Efecto de r
+
+Como vemos r tiene un efecto sobre el crecimiento, valores superiores a 0 implicarán un incremento de la población, mientras que valores debajo de cero implicarán una reducción de la población.
+
+
+```{r}
+
+r1 <- crecE(40,0.06,1:20)
+r2 <- crecE(40,0,1:20)
+r3 <- crecE(40,-0.1,1:20)
+
+plot(r1, type="l", ylim=c(-10,150), col="green", main="Tasa instantánea de crecimiento")
+lines(r2, col="darkred", lty=2)
+lines(r3, lty=3)
+
+text(5,60, "r>0", font=2, cex=1.5)
+text(5,45, "r=0", font=2, cex=1.5)
+text(5,30, "r<0", font=2, cex=1.5)
+```
+
+##Modelando datos: Simulando la dinámica
+
+Hasta ahora hemos trabajado  con modelos deterministas usando una tasa de incremento promedio. Otra aproximación es simular la dinámica de la población.
+
+El proyectar el crecimiento de la población debería incluir alguna cuantificación de incertidumbre. Una forma para incluir esta incertidumbre es analizar los datos y utilizarlos para calcular parámetros del modelo de forma aleatoria.
+
+Antes utilizamos una media geométrica de lambda pero esa media tenía una variación. Podríamos utilizar esa variación como una medida aleatoria y proyectar la población. Miremos los datos:
+
+```{r, warning=FALSE, comment=FALSE }
+library(primer)
+data("sparrows")
+names(sparrows)
+attach(sparrows)
+```
+Podríamos graficar el tamaño de la población en los 36 años y lambda para cada uno de ellos.
+
+```{r, fig.margin=TRUE, fig.height=5, fig.width=8, fig.cap="Crecimiento y lambda de Sparrows"}
+par(mfcol=c(1,2))
+plot(Year, Count, type="b", pch=19)
+obs.R <- Count[-1]/Count[-length(Count)]
+plot(Year[-1], obs.R, pch=19)
+abline(h = 1, lty = 3)
+```
+
+¿Qué pasa con la tasa de crecimiento? Como se puede ver, lambda es muy variable y excepción de un dato, esta varía entre 1.5 y 0.5.  Podemos utilizar esta variación para construir nuestra simulación
+
+##Vamos a simular
+
+Simularemos el crecimiento de la población a 50 años, pero no utilizaremos una media geométrica de lambda, sino obtendremos valores aleatorios de los datos observados de lambda, para cada ciclo.
+
+```{r}
+years<- 50
+set.seed(12)
+sim.Rs <- sample(x = obs.R, size = years, 
+                 replace = TRUE)
+```
+
+Ahora tenemos nuestra tasa de incremento aleatoria para cada año.  Hemos incluido la función __set.seed__ para que la simulación sea igual para todos.
+
+Generamos un vector vacío para poder poner nuestra predicción.
+```{r}
+sim1 <- numeric(years + 1)
+sim1[1] <- Count[Year == max(Year)]
+for (t in 1:years) { 
+  sim1[t + 1] <- sim1[t] * sim.Rs[t] }
+```
+Ahora podemos graficar la población simulada
+ 
+```{r, fig.margin=TRUE, fig.height=5, fig.cap="Población simulada con valores aleatorios de lambda"}
+plot(0:years, sim1, type="l")
+```
+
+Repitamos el proceso pero ahora sin utilizar set.seed. ¿Qué pasó?
+
+##Simulaciones
+
+Tenemos una población simulada, sin embargo, cada que ejecutamos la función tenemos nuevos datos, para que podamos obtener información de esta simulación debemos generar múltiples corridas.
+
+Ahora vamos a realizar 10 simulaciones
+
+```{r}
+sims <- 10 
+sim.RM <- matrix(sample(obs.R, sims * years, 
+                        replace = TRUE), 
+                 nrow = years, ncol = sims)
+
+sim1[1] <- Count[Year == max(Year)]
+outmat <- sapply(1:sims, function(i) { 
+  for (t in 1:years) sim1[t + 1] <- 
+    sim1[t] * sim.RM[t, i]
+                sim1
+              })
+```
+
+```{r, fig.margin=TRUE,fig.height=4.5, fig.cap="Crecimiento de sparrows en 10 simulaciones con valores aleatoreos de lambda"}
+matplot(0:years, outmat, type = "l", log = "y") 
+```
+
+Aunque con estas diez simulaciones podemos ver los límites de como varia esta población, sigue siendo insuficiente, debemos hacer muchas simulaciones para poder ser consistentes en la información que obtenemos.
+
+Correremos una función creada por Stvens (2009) que permite hacer la simulación de la población.
+
+```{r}
+
+PopSim <- function(Rs, N0, years = 50, sims = 10) { 
+              sim.RM = matrix(sample(Rs, size = sims * years, replace = TRUE), 
+                                    nrow = years, ncol = sims)
+             output <- numeric(years + 1) 
+             output[1] <- N0 
+             outmat <- sapply(1:sims, function(i) {
+                        for (t in 1:years) output[t + 1] <- round(output[t] * 
+                                                  sim.RM[t, i], 0)
+                                          output
+                                                 })  
+                   return(outmat) 
+                    }
+
+```
+
+Ahora, podemos simular la población y solo debemos incluir los datos de lambda (obs.R), el tamaño inicial de la población (N0) y la cantidad de simulaciones.
+
+```{r, fig.margin=TRUE, fig.height=5, fig.cap="Crecimiento con 1000 simulaciones (arriba). Reducción de la escala de la población (abajo)."}
+par(mfcol=c(2,1), mar=c(2,4,1,1))
+output <- PopSim(Rs = obs.R, N0 = 13, sims = 1000)
+matplot(output/1000, type="l", ylab="Número/1000")
+matplot(output/1000, type="l", ylim=c(0,10), ylab="Número/1000")
+
+dim(output)
+```
+
+Extraemos el tamaño de la población en el último año2053, para poder analizar la proyección generada de la población.
+
+```{r}
+N.2053 <- output[51, ]
+summary(N.2053, digits = 6)
+```
+
+Grafiquemos los datos y veamos su distribución. Adicionamos los límites de un intervalo de confianza del 95%.
+
+```{r, fig.margin=TRUE, fig.height=4, fig.cap="Distribución de las simulaciones de la población en el año 2053"}
+
+par(mfcol=c(2,1), mar=c(2,4,1,1))
+hist(N.2053, main = "N") 
+hist(log10(N.2053 + 1), main = "log(N+1)") 
+abline(v = log10(quantile(N.2053, prob = c(0.0275, 0.975))
+                                      + 1), lty = 3)
+```
+
+
+#Ejercicios 2
+
+__A. Crecimiento geométrico__
+
+Analizar los  siguientes datos: 
+
+a. En los años 1996 a 2005, los tamaños de población de lirio son N = 150, 100, 125, 200, 225, 150, 100, 175, 100, 150. Haz una gráfica del tamaño de la población en función del tiempo.
+
+b. Calcular lambda para cada año; graficar lambda frente al tiempo. 
+
+c. Calcular la media aritmética y las medias geométricas de las tasas de crecimiento de esta población. 
+
+d. Sobre la base de la tasa media de crecimiento (la que usted considere apropiada) responda las siguientes preguntas: 
+
+¿Cuál sería el tamaño de la población se espera en 2025? 
+¿Cuál sería el tamaño estimado de la población, si ha utilizado la media inapropiada? 
+
+e. Teniendo en cuenta estos datos, desarrollar 1000 simulaciones utilizando la función PopSim. 
+
+Describir la distribución de los tamaños de población proyectados para 2010.
+
+
+__B. Crecimiento de la población Humana__ 
+
+a. Busca información del tamaño de la población a nivel mundial o a nivel local. Obtenga la tasa intrínseca de crecimiento. ¿Cómo ha cambiado la tasa intrínseca de crecimiento, r? 
+
+b. Representa gráficamente el modelo del tamaño de la población  humana de la fecha más antigua que dispongas a 2050. 
+c. Añadir puntos en el gráfico que indica las duplicaciones de la población. 
+d. Responde las siguientes preguntas:
+    ¿Qué va a impedir que los humanos prevalezcan en el planeta a finales de este siglo? 
+    ¿Qué controla el crecimiento de la población humana? 
+    ¿Estos controles varían espacialmente en todo el planeta? 
+

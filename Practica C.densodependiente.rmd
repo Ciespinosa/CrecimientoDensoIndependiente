@@ -1,0 +1,169 @@
+---
+title: "Crecimiento denso-independiente"
+author: "Carlos Iván Espinosa"
+date: "Noviembre 2015"
+output: rmarkdown::tufte_handout
+---
+
+
+#Modelando datos: Simulando la dinámica
+
+Hasta ahora hemos trabajado  con modelos deterministas usando una tasa de incremento promedio. Otra aproximación es simular la dinámica de la población.
+
+El proyectar el crecimiento de la población debería incluir alguna cuantificación de incertidumbre. Una forma para incluir esta incertidumbre es analizar los datos y utilizarlos para calcular parámetros del modelo de forma aleatoria.
+
+Antes utilizamos una media geométrica de lamda pero esa media tenia una variación. Podriamos utilizar esa variación como una medida aleatoria y proyectar la población. Miremos los datos:
+
+```{r, warning=FALSE, comment=FALSE }
+library(primer)
+data("sparrows")
+names(sparrows)
+attach(sparrows)
+```
+Podríamos graficar el tamaño de la población en los 36 años y la lamda para cada uno de ellos
+
+
+
+```{r, fig.margin=TRUE, fig.height=8, fig.width=4, fig.cap="Crecimiento y lamda de Sparrows"}
+par(mfcol=c(2,1))
+plot(Year, Count, type="b", pch=19)
+obs.R <- Count[-1]/Count[-length(Count)]
+plot(Year[-1], obs.R, pch=19)
+abline(h = 1, lty = 3)
+```
+
+¿Qué pasa con la tasa de crecimiento? Como se puede ver lambda es muy variable y acepción d un dato, esta varia entre 1.5 y 0.5.  Podemos utilizar esta variación para construir nuestra simulación
+
+#Vamos a simular
+
+Simularemos el crecimiento de la población a 50 años, pero no utilizaremos una media geométrica de lambda, sino obtendremos valores aleatorios de los datos observados de lambda.
+
+```{r}
+years<- 50
+set.seed(3)
+sim.Rs <- sample(x = obs.R, size = years, 
+                 replace = TRUE)
+```
+
+Ahora tenemos nuestra tasa de incremento aleatoria para cada año.  Hemos incluido la función __set.seed__ para que la simulación sea igual para todos.
+
+Generamos un vector vacio para poder poner nuestra predicción.
+```{r}
+output <- numeric(years + 1)
+output[1] <- Count[Year == max(Year)]
+for (t in 1:years) output[t + 1] <- { 
+  output[t] * sim.Rs[t] }
+```
+Ahora podemos graficar la población simulada
+ 
+```{r, fig.margin=TRUE, fig.height=5, fig.cap="Población simulada con valores aleatorios de lambda"}
+plot(0:years, output, type="l")
+```
+
+Repitamos el proceso pero ahora sin utilizar set.seed. ¿Qué pasó?
+
+#Simulaciones
+Tenemos una población simulada, sin embargo, cada que ejecutamos la función tenemos nuevos datos, para que podamos obtener información de esta simulación debemos generar multiples corridas.
+Ahora vamos a realizar 10 simulaciones
+```{r}
+sims <- 10 
+sim.RM <- matrix(sample(obs.R, sims * years, 
+                        replace = TRUE), 
+                 nrow = years, ncol = sims)
+
+output[1] <- Count[Year == max(Year)]
+outmat <- sapply(1:sims, function(i) { 
+  for (t in 1:years) output[t + 1] <- 
+    output[t] * sim.RM[t, i]
+                output
+              })
+```
+
+```{r, fig.margin=TRUE,fig.height=4.5, fig.cap="Crecimiento de sparrows en 10 simulaciones con valores aleatoreos de lambda"}
+matplot(0:years, outmat, type = "l", log = "y") 
+```
+
+Aunque con estas diez simulaciones podemos ver los límites de como varia esta población, sigue siendo insuficiente, debemos hacer muchas simulaciones para poder ser consistentes en la información que obtenemos.
+
+Correremos una función creada por Stvens (2009) que permite hacer la simulación de la población.
+
+```{r}
+
+PopSim <- function(Rs, N0, years = 50, sims = 10) { 
+              sim.RM = matrix(sample(Rs, size = sims * years, replace = TRUE), 
+                                    nrow = years, ncol = sims)
+             output <- numeric(years + 1) 
+             output[1] <- N0 
+             outmat <- sapply(1:sims, function(i) {
+                        for (t in 1:years) output[t + 1] <- round(output[t] * 
+                                                  sim.RM[t, i], 0)
+                                          output
+                                                 })  
+                   return(outmat) 
+                    }
+
+```
+
+Ahora, podemos simular la población y solo debemos incluir los datos de lambda (obs.R), el tamaño inicial de la población (N0) y la cantidad de simulaciones.
+
+```{r, fig.margin=TRUE, fig.height=5, fig.cap="Crecimiento con 1000 simulaciones (arriba). Reducción de la escala de la población (abajo)."}
+par(mfcol=c(2,1), mar=c(2,4,1,1))
+output <- PopSim(Rs = obs.R, N0 = 13, sims = 1000)
+matplot(output/1000, type="l", ylab="Número/1000")
+matplot(output/1000, type="l", ylim=c(0,10), ylab="Número/1000")
+
+dim(output)
+```
+
+Extraemos el tamaño de la población en el último año2053, para poder analizar la proyección generada de la población.
+
+```{r}
+N.2053 <- output[51, ]
+summary(N.2053, digits = 6)
+```
+
+Grafiquemos los datos y veamos su ditribución. Adicionamos además los limites de un intervalo de confianza del 95%.
+
+```{r, fig.margin=TRUE, fig.height=4, fig.cap="Distribución de las simulaciones de la población en el año 2053"}
+
+par(mfcol=c(2,1), mar=c(2,4,1,1))
+hist(N.2053, main = "N") 
+hist(log10(N.2053 + 1), main = "log(N+1)") 
+abline(v = log10(quantile(N.2053, prob = c(0.0275, 0.975))
+                                      + 1), lty = 3)
+```
+
+
+#Problemas
+
+__A. Crecimiento geométrico__
+
+Analizar los  siguientes datos: 
+
+a. En los años 1996 a 2005, los tamaños de población de lirio son N = 150, 100, 125, 200, 225, 150, 100, 175, 100, 150. Haz una gráfica del tamaño de la población en función del tiempo.
+
+b. Calcular lambda para cada año; gráficar lambda frente al tiempo. 
+
+c. Calcular la media aritmética y las medias geométricas de las tasas de crecimiento de esta población. 
+
+d. Sobre la base de la tasa media de crecimiento (la que usted considere apropiada) responda las siguientes preguntas: 
+
+¿cuál sería el tamaño de la población se espera en 2025? 
+¿Cuál sería el tamaño estimado de la población, si ha utilizado la media inapropiada? 
+
+e. Teniendo en cuenta estos datos, desarrollar 1000 simulacione utilizando la función PopSim. 
+
+Describir la distribución de los tamaños de población proyectados para 2010.
+
+
+__B. Crecimiento de la población Humana__ 
+
+a. En 1700 la población de personas en el planeta era de cerca de 630 millones y en el 2003 esta población llego a 6300 millones.
+¿Cuál fue la tasa intrínseca de crecimiento, r? 
+
+b. Representa gráficamente el modelo del tamaño de la población  humana de 1700 a 2020. 
+c. Añadir puntos en el gráfico que indica las duplicaciones de la población desde 1700 en adelante. 
+d. Responde las siguentes preguntas:
+    ¿Qué va a impedir que los humanos prevalezcan en el planeta a finales de este siglo? 
+    ¿Qué controla el crecimiento de la población humana? 
+    ¿Estos controles varían espacialmente en todo el planeta? 
