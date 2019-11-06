@@ -16,9 +16,9 @@ output:
 
 #Introducción
 
-La dinámica de la población es una de las características más importantes de una población, los cambios en el tamaño poblacional resumen muchos de los procesos que se dan al interior de la comunidad. El tamaño poblacional está asociado a las tasas de natalidad y mortalidad, así como a las emigraciones e inmigraciones. Comprender como la población cambia en el tiempo es fundamental para poder desarrollar acciones de manejo de especies protegidas o en peligro de extinción.
+La dinámica de la población es una de las características más importantes de una población, los cambios en el tamaño poblacional resumen muchos de los procesos que se dan al interior de la comunidad, como las tasas de natalidad y mortalidad, así como, las emigraciones e inmigraciones. Comprender como la población cambia en el tiempo es fundamental para poder desarrollar acciones de manejo de especies protegidas o en peligro de extinción.
 
-Uno de los modelos más básicos de crecimiento poblacional es el __crecimiento denso-independiente__, este crecimiento básicamente postula que la tasa de incremento _per capita_ no tiene dependencia estadística del tamaño de la población. En otras palabras, las tasas de natalidad y mortalidad de un individuo son independientes de número de individuos que tenga la población. Aunque biológicamente esto parezca que no tiene mucho sentido, el modelo de crecimiento denso-independiente propone que es necesario que aunque haya una influencia esta sea estadísticamente detectable. El poder de detectar una relación significativa depende, en parte, de aquellos factores que gobiernan el poder en las relaciones estadísticas entre dos variables continuas: el número de observaciones y el rango de la variable predictora. Por lo tanto, nuestra conclusión de que una población en particular exhibe un crecimiento independiente de la densidad, puede ser trivial si nuestro tamaño de muestra es pequeño (es decir, pocas generaciones muestreadas), o si muestreamos la población en un rango muy estrecho de densidades. 
+Uno de los modelos básicos de crecimiento poblacional es el __crecimiento denso-independiente__, este crecimiento  postula que la tasa de incremento _per capita_ no tiene dependencia estadística del tamaño de la población. En otras palabras, las tasas de natalidad y mortalidad de un individuo son independientes de número de individuos que tenga la población. Aunque biológicamente esto parezca que no tiene mucho sentido. Pero realmente el modelo de crecimiento denso-independiente propone la influencia que el tamaño de la población ejerza sobre la tasa de incremento debe ser  estadísticamente detectable. El detectar una relación significativa, al igual que en cualquier relación estadística,  depende entre otros de dos variables; el número de observaciones y el rango de la variable predictora. Por lo tanto, nuestra conclusión, de que una población en particular exhibe un crecimiento independiente de la densidad, puede ser difícil si el tamaño de muestra es pequeño (es decir, pocas generaciones muestreadas), o si muestreamos la población en un rango muy estrecho de densidades. 
 
 #Crecimiento geométrico discreto
 
@@ -34,10 +34,11 @@ tiempo <- seq(as.POSIXct("2018-01-15"),as.POSIXct("2019-02-15"), by=60*60*24*30*
 
 plot(tiempo, N, type="b", 
      xlab="Meses de muestreo", 
-     ylab="Tamaño. N")
+     ylab="Tamaño. N", ylim=c(0,40))
+text(tiempo, N, N, pos=3)
 ```
 
-Vemos que aparentemente la población está creciendo, aparentemente ese crecimiento es más grande cada vez.  Una forma de ver la tasa a la cual está creciendo la población es dividiendo el tamaño poblacional en el tiempo dos para el tamaño en el tiempo uno. 
+Vemos que la población está creciendo, aparentemente ese crecimiento es más grande en cada ciclo.  Una forma de ver la tasa a la cual está creciendo la población es dividiendo el tamaño poblacional en el tiempo dos para el tamaño en el tiempo uno. 
 
 $$tasa = (N_{t+1}/N_t)$$
 
@@ -65,14 +66,14 @@ $$\frac{N_{t+1}}{N_{t}} = \lambda$$
 
 ##Proyección de la población
 
-Ahora podemos utilizar la fórmula que derivamos para proyectar la población. Veamos primero la proyección de la población por cada periodo, en el caso del ejemplo de las mariposas cada 3 meses.
+Ahora podemos utilizar la fórmula que derivamos para proyectar la población. Veamos la proyección de la población por cada periodo, en el caso del ejemplo de las mariposas cada 3 meses.
 
 
 $$N_{abril} = 2 * N_{enero}$$
 $$N_{julio} = 2 * N_{abril} = 2 * (2 * N_{enero})$$
 $$N_{octubre} = 3 * N_{julio} = 2 * (2 * N_{abril})= 2 * (2 * (2 * N_{enero}))$$
 
-Como vemos podemos utilizar cualquier momento de la población, únicamente es necesario que lo multipliquemos por tantos ciclos queremos proyectar, así de enero a octubre hay tres ciclos por lo que la tasa de crecimiento deberíamos multiplicarla tres veces: 2 x 2 x 2 o lo que es lo mismo $2^2$, así la tasa se eleva a la cantidad de ciclos que queremos proyectar la población. Ahora podemos generalizar e incluir en nuestra formula como:
+Como vemos podemos calcular el incremento de la población en cualquier momento, únicamente es necesario que lo multipliquemos por tantos ciclos queremos proyectar, así, de enero a octubre hay tres ciclos por lo que deberíamos multiplicar la tasa de crecimiento tres veces: 2 x 2 x 2 o lo que es lo mismo $2^3$, así la tasa se eleva a la cantidad de ciclos que queremos proyectar la población. Ahora podemos generalizar e incluir en nuestra formula como:
 
 
 $$N_{t+1} = \lambda^t * N_t$$
@@ -251,7 +252,7 @@ Conteste las siguientes preguntas:
 
 #Crecimiento exponencial continuo
 
-El modelo que propusimos antes, propone el crecimiento de la población como una serie de eventos reproductivos, así cada ciclo la población se reproduce en un único evento. Aunque esta aproximación ha sido utilizada para estudiar poblaciones de varios grupos, no en todos los casos ha tenido un buen ajuste. El problema principal está en que las poblaciones no crecen a saltos y realmente las poblaciones tienen múltiples eventos de reproducción. 
+El modelo geométrico propone el crecimiento de la población como una serie de eventos reproductivos, así cada ciclo la población se reproduce en un único evento. Aunque esta aproximación ha sido utilizada para estudiar poblaciones de varios grupos, no en todos los casos ha tenido un buen ajuste. El problema principal está en que las poblaciones no crecen a saltos y realmente las poblaciones tienen múltiples eventos de reproducción. 
 
 Vamos a ver un ejemplo y comprender que implicaciones tiene este cambio de un único evento reproductivo o varios eventos. Usaremos como ejemplo una bacteria muy conocida la _Escherichia coli_. Imaginemos que ponemos en una caja petri 1000 individuos de _E. coli_ y al siguiente día contamos la cantidad de bacterias y tenemos $10^10$ bacterias, eso implicaría que las bacterias tienen una tasa de incremento (lambda) de $10^7$ por día. Pero esto no es tan cierto, el ciclo de las bacterias no es de un día, posiblemente es cercano a minutos, además las bacterias están reproduciéndose continuamente y de forma asíncrona. Como vemos el crecimiento geométrico no se acopla a esta realidad.
 

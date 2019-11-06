@@ -1,0 +1,228 @@
+---
+title: "Crecimiento denso-independiente"
+author: "Carlos Iván Espinosa"
+date: "5 de noviembre de 2019"
+output: slidy_presentation
+---
+
+
+##Crecimiento Poblacional
+
+> - ¿De que estamos hablando con crecimiento poblacional?
+
+
+> - Resumen de procesos de: Natalidad, Mortalidad, Inmigración, Emigración
+
+
+> - Cambios en el tamaño de la población
+
+##Crecimiento Denso-independiente
+
+El crecimiento denso-independiente postula que la tasa de incremento _per capita_ no tiene dependencia estadística del tamaño de la población.
+
+__Estadísticamente Detectable__
+
+
+> - El detectar una relación significativa, depende de; __el número de observaciones__ y el __rango de la variable__ predictora
+
+##Crecimiento Geométrico discreto
+
+El crecimiento de mariposas
+
+```{r, echo =FALSE}
+
+#Tamaño de la mariposa durante los 13 meses
+N<- c(2,4,8,16,32)
+
+#Tiempo en el cual se hizo la observación
+tiempo <- seq(as.POSIXct("2018-01-15"),as.POSIXct("2019-02-15"), by=60*60*24*30*3)
+
+plot(tiempo, N, type="b", 
+     xlab="Meses de muestreo", 
+     ylab="Tamaño. N", ylim=c(0,40))
+text(tiempo, N, N, pos=3)
+```
+
+> - ¿El crecimiento es igual o ha cambiado?
+
+##La tasa de incremento per capita
+
+> - En el primer periodo la población cambió en 2 individuos (tenia dos y llegamos a 4), en el segundo periodo llegó a 8 por lo que cambió en 4 individuos.
+
+> - Pero, ¿La tasa de incremento cambió?
+
+> - Para obtener la tasa de incremento usamos: $$tasa = (N_{t+1}/N_t)$$
+
+> - Para el primer periodo sería 4/2= 2. La tasa de incremento es __2__
+
+##Calculemos en R
+
+    ```{r}
+    tasa <- N[2:5]/N[1:4]
+    tasa
+    ```
+
+> Como vemos, nuestra tasa de incremento no varía a lo largo del periodo de muestreo
+
+> Ahora podemos usar la tasa de incremento para saber el tamaño de la población.
+
+##El tamaño de la población en N2
+
+La tasa de incremento que obtuvimos implica que la población se duplica cada año, esta aseveración la podríamos marcar como:
+
+$$N_{abril} = 2 * N_{enero}$$
+
+$$\frac{N_{abril}}{N_{enero}} = 2$$
+
+> - Podemos generalizar esta formula como:  $$N_{t+1} = \lambda * N_t$$
+
+> - La tasa de incremento como: $$\frac{N_{t+1}}{N_{t}} = \lambda$$
+
+
+##Proyección de la población
+
+Ahora podemos utilizar la fórmula que derivamos para proyectar la población. Veamos la proyección de la población por cada periodo, en el caso del ejemplo de las mariposas cada 3 meses.
+
+
+$$N_{abril} = 2 * N_{enero}$$
+$$N_{julio} = 2 * N_{abril} = 2 * (2 * N_{enero})$$
+$$N_{octubre} = 3 * N_{julio} = 2 * (2 * N_{abril})= 2 * (2 * (2 * N_{enero}))$$
+
+> - Podemos calcular el incremento de la población en cualquier momento, multiplicamos la tasa de incremento por tantos ciclos queremos proyectar, para tres ciclos: 2 x 2 x 2 o $2^3$. Elevamos la tasa a la cantidad de ciclos que queremos proyectar la población.
+
+> - Generalizamos como: __$N_{t+1} = \lambda^t * N_t$__
+
+
+##Proyectar la población
+
+Si el ciclo de las mariposas es es 3 meses, proyecte el tamaño de la población a tres años. La población inicial es de 2 individuos.
+
+> - ¿Cuántos individuos tendrémos en 3 años?
+
+## Proyectar la población en R
+
+
+```{r}
+
+# hacemos una función para calcular el tamaño de la población
+crec <- function(lambda, t, N){
+          N <- lambda^t * N
+       return(N) 
+}
+
+crec(2,12,2)
+```
+
+> - ¿Coincide con su proyección?
+
+##Efectos del tamaño inicial de la población
+
+Nuestra población de mariposas se está duplicando en cada periodo, la magnitud del crecimiento es cada vez mayor, crece de una forma geométrica. 
+
+>- Una población inicial de 10 individuos incrementa en 10 individuos. 
+>- Una población inicial de 20 individuos incrementa de 20 individuos. 
+
+>- La magnitud del incremento es diferente dependiendo del tamaño de la población inicial.
+
+
+##Un Ejemplo
+
+```{r, echo =FALSE}
+
+N0 <- c(10,20, 30) #tres tamaños distintos
+t <- c(0:6) #seis periodos
+Nm <- matrix(NA,7,3) 
+
+for(i in 1:3){
+Nm[,i] <- crec(2,t=t, N=N0[i])
+}
+matplot(Nm, type="b")
+
+```
+
+>- Estas poblaciones, ¿crecen a una tasa distinta?
+
+##Un Ejemplo (2)
+
+```{r}
+
+matplot(log(Nm), type="b")
+
+```
+
+El crecimiento realmente es paralelo, las tres poblaciones están creciendo a una tasa similar. Aunque cambia el intercepto (donde inicia la población) los cambios son lineares en las tres poblaciones.
+
+
+##Efecto de la tasa de incremento ($\lambda$)
+
+Como hemos visto lambda actúa directamente sobre la población, por lo que los cambios en la tasa _per capita_ tienen un fuerte efecto sobre el crecimiento de la población. 
+
+```{r, echo=FALSE}
+lam <- c(0.5,1, 1.5) #tres tamaños distintos
+t <- c(0:4) #seis periodos
+Lm <- matrix(NA,5,3) 
+
+for(i in 1:3){
+Lm[,i] <- crec(lambda = lam[i],t=t, N=10)
+}
+matplot(Lm, type="b")
+
+text(2.5,30, "lambda>1 - Pob. Crece")
+text(2,0, "lambda<1 - Pob. Decrece")
+text(4,12, "lambda>1 - Pob. se mantiene")
+```
+
+##Tasa promedio de crecimiento
+
+> - ¿Cuál sería la tasa de incremento de una población de ninfálidos? 
+
+> - 100, 50,75
+
+> - ¿Cuál tasa usamos para el modelo?
+
+> - Podemos usar el valor medio de los diferentes periodos.  Intentemos calcular el crecimiento.
+
+
+##Ejemplo en R
+
+```{r}
+
+#Nuestros datos
+ninfalidos <- c(100, 50, 75)
+
+#obtengamos lambda
+ninL <- ninfalidos[2:3]/ninfalidos[1:2]
+ninL
+
+#obtenemos la media
+xL <- mean(ninL)
+
+#usamos nuestra función 
+crec(lambda = xL, t = 3,N = 100)
+```
+
+##La media geométrica
+
+Como vemos la media aritmética no es la mejor medida para poder proyectar la comunidad.  Una medida que se ajusta mejor es la media geométrica. 
+
+```{r}
+#calculamos la media aritmética
+xgL <- prod(ninL)^(1/3)
+
+#usamos nuestra función 
+crec(lambda = xgL, t = 3,N = 100)
+
+```
+
+##Ejercicio 1
+
+Resolver el [ejercicio 1](https://ciespinosa.github.io/CrecimientoDensoIndependiente/)
+
+##Crecimiento exponencial continuo
+
+El modelo geométrico propone el crecimiento de la población como una serie de eventos reproductivos, así cada ciclo la población se reproduce en un único evento. Aunque esta aproximación ha sido utilizada para estudiar poblaciones de varios grupos, no en todos los casos ha tenido un buen ajuste. El problema principal está en que las poblaciones no crecen a saltos y realmente las poblaciones tienen múltiples eventos de reproducción. 
+
+Vamos a ver un ejemplo y comprender que implicaciones tiene este cambio de un único evento reproductivo o varios eventos. Usaremos como ejemplo una bacteria muy conocida la _Escherichia coli_. Imaginemos que ponemos en una caja petri 1000 individuos de _E. coli_ y al siguiente día contamos la cantidad de bacterias y tenemos $10^10$ bacterias, eso implicaría que las bacterias tienen una tasa de incremento (lambda) de $10^7$ por día. Pero esto no es tan cierto, el ciclo de las bacterias no es de un día, posiblemente es cercano a minutos, además las bacterias están reproduciéndose continuamente y de forma asíncrona. Como vemos el crecimiento geométrico no se acopla a esta realidad.
+
+
+
