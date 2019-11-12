@@ -220,9 +220,222 @@ Resolver el [ejercicio 1](https://ciespinosa.github.io/CrecimientoDensoIndependi
 
 ##Crecimiento exponencial continuo
 
-El modelo geométrico propone el crecimiento de la población como una serie de eventos reproductivos, así cada ciclo la población se reproduce en un único evento. Aunque esta aproximación ha sido utilizada para estudiar poblaciones de varios grupos, no en todos los casos ha tenido un buen ajuste. El problema principal está en que las poblaciones no crecen a saltos y realmente las poblaciones tienen múltiples eventos de reproducción. 
+El modelo geométrico propone el crecimiento de la población como una serie de eventos reproductivos, así cada ciclo la población se reproduce en un único evento. 
 
-Vamos a ver un ejemplo y comprender que implicaciones tiene este cambio de un único evento reproductivo o varios eventos. Usaremos como ejemplo una bacteria muy conocida la _Escherichia coli_. Imaginemos que ponemos en una caja petri 1000 individuos de _E. coli_ y al siguiente día contamos la cantidad de bacterias y tenemos $10^10$ bacterias, eso implicaría que las bacterias tienen una tasa de incremento (lambda) de $10^7$ por día. Pero esto no es tan cierto, el ciclo de las bacterias no es de un día, posiblemente es cercano a minutos, además las bacterias están reproduciéndose continuamente y de forma asíncrona. Como vemos el crecimiento geométrico no se acopla a esta realidad.
+> - ¿Realmente las poblaciones crecen a saltos?
+
+##Ejemplo
+
+Imaginemos que ponemos en una caja petri 1000 individuos de _E. coli_ y al siguiente día contamos la cantidad de bacterias y tenemos $10^10$ bacterias, eso implicaría que las bacterias tienen una tasa de incremento (lambda) de $10^7$ por día. 
+
+Pero las bacterias están reproduciéndose continuamente y de forma asíncrona. 
+
+##Incremento continuo
+
+Jacob Bernulli (1654), se dio cuenta que el crecimiento geométrico depende de la periodicidad que asumimos que ocurren los ciclos reproductivos. 
+Una tasa de $\lambda = 1.5$ anualmente, implicaría que la población incremente el 50% cada año, por lo que su __tasa de incremento discreto__ es $r_d = 0.5$. 
+
+Con dos eventos la tasa debería ser dividida para 2 elevado para el número de ciclos.
+
+$$N_1 = N_0(1+0.5)$$ 
+$$N_1 = N_0(1+05/2)^2$$ 
+
+Podríamos generalizar como:
+
+$$N1 = N_0\biggl(1+  \frac{r_d}{n}\biggr)^n$$
+$$\frac{N1}{N0} = \biggl(1+  \frac{r_d}{n}\biggr)^n$$
+
+##Periodos infinitos
+
+```{r}
+n <- 1:100 #entre 1 y 100 periodos en el año
+N0 <- 1 #población inicial de 1
+rd <- 1 #tasa de incremento discreto
+
+#Calculamos el tamaño de la población
+N1 <- N0 * (1 + rd/n)^n
+
+#Graficamos los datos
+plot(n, N1/N0, type = "l")
+text(50, 2, "For n = 100,") 
+text(50, 1.6, bquote((1 + frac("r"["d"], "n"))^"n" == + .(round(N1[101]/N0, 3))))
+
+```
+
+##La constante e
+
+Como vemos cuando incrementamos el número de eventos reproductivos llegamos a una constante que es 2.718.
+
+El crecimiento exponencial es:
+
+$$N_t = N_0e^{rt}$$
+en este caso r es la tasa intrínseca de crecimiento.
+
+##Ajustando el modelo
+
+Veamos como podemos ajustar un modelo de crecimiento exponencial continuo.
+
+```{r}
+#nuestra población
+mariposas <- c(10, 25, 89, 160, 312)
+
+#obtenemos lambda
+lamM <- mariposas[2:5]/mariposas[1:4]
+
+#convertimos lambda en r
+rM <- log(lamM)
+
+##Hacemos una función de crecimiento exponencial
+crecE <- function(N0,r,t ){
+  N <- N0*exp(r*t)
+  return(N)
+}
+
+#obtenemos la media aritmética de r
+rMx <- prod(rM)^1/4
+
+#proyectamos la población
+
+marCrecE <- crecE(N0=15, r = rMx, t = 1:50)
+plot(marCrecE, type="l")
+
+```
+
+##Efecto de r
+
+Como vemos r tiene un efecto sobre el crecimiento, valores superiores a 0 implicarán un incremento de la población, mientras que valores debajo de cero implicarán una reducción de la población.
 
 
+```{r}
+
+r1 <- crecE(40,0.06,1:20)
+r2 <- crecE(40,0,1:20)
+r3 <- crecE(40,-0.1,1:20)
+
+plot(r1, type="l", ylim=c(-10,150), col="green", main="Tasa instantánea de crecimiento")
+lines(r2, col="darkred", lty=2)
+lines(r3, lty=3)
+
+text(5,60, "r>0", font=2, cex=1.5)
+text(5,45, "r=0", font=2, cex=1.5)
+text(5,30, "r<0", font=2, cex=1.5)
+```
+
+##Modelando datos: Simulando la dinámica
+
+Hasta ahora hemos trabajado  con modelos deterministas usando una tasa de incremento promedio. Otra aproximación es simular la dinámica de la población con alguna cuantificación de incertidumbre.
+
+Analizar los datos y utilizarlos para calcular parámetros del modelo de forma aleatoria.
+
+##Aleatorizando r
+
+Podríamos utilizar la variación de la tasa de incremento como una medida aleatoria y proyectar la población. Miremos los datos:
+
+```{r, warning=FALSE, comment=FALSE, message=FALSE, echo =F}
+library(primer)
+data("sparrows")
+attach(sparrows)
+```
+Podríamos graficar el tamaño de la población en los 36 años y lambda para cada uno de ellos.
+
+```{r, fig.margin=TRUE, fig.height=5, fig.width=8, fig.cap="Crecimiento y lambda de Sparrows"}
+par(mfcol=c(1,2))
+plot(Year, Count, type="b", pch=19)
+obs.R <- Count[-1]/Count[-length(Count)]
+plot(Year[-1], obs.R, pch=19)
+abline(h = 1, lty = 3)
+```
+
+##Variación de lambda
+
+¿Qué pasa con la tasa de crecimiento? 
+
+Como se puede ver, lambda es muy variable y excepción de un dato, esta varía entre 1.5 y 0.5.  Podemos utilizar esta variación para construir nuestra simulación
+
+##Vamos a simular
+
+Simularemos el crecimiento de la población a 50 años, pero no utilizaremos una media geométrica de lambda.
+
+```{r}
+years<- 50
+set.seed(12)
+sim.Rs <- sample(x = obs.R, size = years, 
+                 replace = TRUE)
+```
+
+Ahora tenemos nuestra tasa de incremento aleatoria para cada año.  
+
+##La predicción
+
+Generamos un vector vacío para poder poner nuestra predicción.
+```{r}
+sim1 <- numeric(years + 1)
+sim1[1] <- Count[Year == max(Year)]
+for (t in 1:years) { 
+  sim1[t + 1] <- sim1[t] * sim.Rs[t] }
+```
+Ahora podemos graficar la población simulada
+ 
+```{r, fig.margin=TRUE, fig.height=5, fig.cap="Población simulada con valores aleatorios de lambda"}
+plot(0:years, sim1, type="l")
+```
+
+##Simulaciones
+
+Tenemos una población simulada, sin embargo, cada que ejecutamos la función tenemos nuevos datos, para que podamos obtener información de esta simulación debemos generar múltiples corridas.
+
+
+```{r}
+
+PopSim <- function(Rs, N0, years = 50, sims = 10) { 
+              sim.RM = matrix(sample(Rs, size = sims * years, replace = TRUE), 
+                                    nrow = years, ncol = sims)
+             output <- numeric(years + 1) 
+             output[1] <- N0 
+             outmat <- sapply(1:sims, function(i) {
+                        for (t in 1:years) output[t + 1] <- round(output[t] * 
+                                                  sim.RM[t, i], 0)
+                                          output
+                                                 })  
+                   return(outmat) 
+                    }
+
+```
+
+##Simulaciones
+
+Ahora, podemos simular la población y solo debemos incluir los datos de lambda (obs.R), el tamaño inicial de la población (N0) y la cantidad de simulaciones.
+
+```{r, fig.margin=TRUE, fig.height=5, fig.cap="Crecimiento con 1000 simulaciones (arriba). Reducción de la escala de la población (abajo)."}
+par(mfcol=c(2,1), mar=c(2,4,1,1))
+output <- PopSim(Rs = obs.R, N0 = 13, sims = 1000)
+matplot(output/1000, type="l", ylab="Número/1000")
+matplot(output/1000, type="l", ylim=c(0,10), ylab="Número/1000")
+
+dim(output)
+```
+
+##Población resultante
+
+Extraemos el tamaño de la población en el último año2053, para poder analizar la proyección generada de la población.
+
+```{r}
+N.2053 <- output[51, ]
+summary(N.2053, digits = 6)
+```
+
+##Graficamos
+
+Grafiquemos los datos y veamos su distribución. Adicionamos los límites de un intervalo de confianza del 95%.
+
+```{r, fig.margin=TRUE, fig.height=4, fig.cap="Distribución de las simulaciones de la población en el año 2053"}
+
+par(mfcol=c(2,1), mar=c(2,4,1,1))
+hist(N.2053, main = "N") 
+hist(log10(N.2053 + 1), main = "log(N+1)") 
+abline(v = log10(quantile(N.2053, prob = c(0.0275, 0.975))
+                                      + 1), lty = 3)
+```
+
+##Probabilidad de extinción
 
