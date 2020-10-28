@@ -6,7 +6,7 @@ output: slidy_presentation
 ---
 
 
-##Crecimiento Poblacional
+## Crecimiento Poblacional
 
 > - ¿De que estamos hablando con crecimiento poblacional?
 
@@ -16,7 +16,7 @@ output: slidy_presentation
 
 > - Cambios en el tamaño de la población
 
-##Crecimiento Denso-independiente
+## Crecimiento Denso-independiente
 
 El crecimiento denso-independiente postula que la tasa de incremento _per capita_ no tiene dependencia estadística del tamaño de la población.
 
@@ -25,11 +25,11 @@ __Estadísticamente Detectable__
 
 > - El detectar una relación significativa, depende de; __el número de observaciones__ y el __rango de la variable__ predictora
 
-##Crecimiento Geométrico discreto
+## Crecimiento Geométrico discreto
 
 El crecimiento de mariposas
 
-```{r, echo =FALSE}
+```{r, echo =FALSE, fig.height=4.5, fig.align='center'}
 
 #Tamaño de la mariposa durante los 13 meses
 N<- c(2,4,8,16,32)
@@ -45,9 +45,11 @@ text(tiempo, N, N, pos=3)
 
 > - ¿El crecimiento es igual o ha cambiado?
 
-##La tasa de incremento per capita
+## La tasa de incremento per capita
 
-> - En el primer periodo la población cambió en 2 individuos (tenia dos y llegamos a 4), en el segundo periodo llegó a 8 por lo que cambió en 4 individuos.
+> - En el primer periodo la población cambió en 2 individuos (tenia dos y llegamos a 4)
+
+> - En el segundo periodo llegó a 8 por lo que cambió en 4 individuos.
 
 > - Pero, ¿La tasa de incremento cambió?
 
@@ -55,7 +57,7 @@ text(tiempo, N, N, pos=3)
 
 > - Para el primer periodo sería 4/2= 2. La tasa de incremento es __2__
 
-##Calculemos en R
+## Calculemos en R
 
     ```{r}
     tasa <- N[2:5]/N[1:4]
@@ -66,7 +68,7 @@ text(tiempo, N, N, pos=3)
 
 > Ahora podemos usar la tasa de incremento para saber el tamaño de la población.
 
-##El tamaño de la población en N2
+## El tamaño de la población en N2
 
 La tasa de incremento que obtuvimos implica que la población se duplica cada año, esta aseveración la podríamos marcar como:
 
@@ -79,21 +81,21 @@ $$\frac{N_{abril}}{N_{enero}} = 2$$
 > - La tasa de incremento como: $$\frac{N_{t+1}}{N_{t}} = \lambda$$
 
 
-##Proyección de la población
+## Proyección de la población
 
 Ahora podemos utilizar la fórmula que derivamos para proyectar la población. Veamos la proyección de la población por cada periodo, en el caso del ejemplo de las mariposas cada 3 meses.
 
 
 $$N_{abril} = 2 * N_{enero}$$
 $$N_{julio} = 2 * N_{abril} = 2 * (2 * N_{enero})$$
-$$N_{octubre} = 3 * N_{julio} = 2 * (2 * N_{abril})= 2 * (2 * (2 * N_{enero}))$$
+$$N_{octubre} = 2 * N_{julio} = 2 * (2 * N_{abril})= 2 * (2 * (2 * N_{enero}))$$
 
 > - Podemos calcular el incremento de la población en cualquier momento, multiplicamos la tasa de incremento por tantos ciclos queremos proyectar, para tres ciclos: 2 x 2 x 2 o $2^3$. Elevamos la tasa a la cantidad de ciclos que queremos proyectar la población.
 
 > - Generalizamos como: __$N_{t+1} = \lambda^t * N_t$__
 
 
-##Proyectar la población
+## Proyectar la población
 
 Si el ciclo de las mariposas es es 3 meses, proyecte el tamaño de la población a tres años. La población inicial es de 2 individuos.
 
@@ -115,7 +117,7 @@ crec(2,12,2)
 
 > - ¿Coincide con su proyección?
 
-##Efectos del tamaño inicial de la población
+## Efectos del tamaño inicial de la población
 
 Nuestra población de mariposas se está duplicando en cada periodo, la magnitud del crecimiento es cada vez mayor, crece de una forma geométrica. 
 
@@ -125,9 +127,9 @@ Nuestra población de mariposas se está duplicando en cada periodo, la magnitud
 >- La magnitud del incremento es diferente dependiendo del tamaño de la población inicial.
 
 
-##Un Ejemplo
+## Un Ejemplo
 
-```{r, echo =FALSE}
+```{r, echo =FALSE, fig.height=4.5, fig.align='center'}
 
 N0 <- c(10,20, 30) #tres tamaños distintos
 t <- c(0:6) #seis periodos
@@ -142,9 +144,9 @@ matplot(Nm, type="b")
 
 >- Estas poblaciones, ¿crecen a una tasa distinta?
 
-##Un Ejemplo (2)
+## Un Ejemplo (2)
 
-```{r}
+```{r , echo =FALSE, fig.height=4.5, fig.align='center'}
 
 matplot(log(Nm), type="b")
 
@@ -153,11 +155,11 @@ matplot(log(Nm), type="b")
 El crecimiento realmente es paralelo, las tres poblaciones están creciendo a una tasa similar. Aunque cambia el intercepto (donde inicia la población) los cambios son lineares en las tres poblaciones.
 
 
-##Efecto de la tasa de incremento ($\lambda$)
+## Efecto de la tasa de incremento ($\lambda$)
 
 Como hemos visto lambda actúa directamente sobre la población, por lo que los cambios en la tasa _per capita_ tienen un fuerte efecto sobre el crecimiento de la población. 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.align= 'center', fig.height=4.5}
 lam <- c(0.5,1, 1.5) #tres tamaños distintos
 t <- c(0:4) #seis periodos
 Lm <- matrix(NA,5,3) 
@@ -172,7 +174,7 @@ text(2,0, "lambda<1 - Pob. Decrece")
 text(4,12, "lambda>1 - Pob. se mantiene")
 ```
 
-##Tasa promedio de crecimiento
+## Tasa promedio de crecimiento
 
 > - ¿Cuál sería la tasa de incremento de una población de ninfálidos? 
 
@@ -183,7 +185,7 @@ text(4,12, "lambda>1 - Pob. se mantiene")
 > - Podemos usar el valor medio de los diferentes periodos.  Intentemos calcular el crecimiento.
 
 
-##Ejemplo en R
+## Ejemplo en R
 
 ```{r}
 
@@ -201,7 +203,7 @@ xL <- mean(ninL)
 crec(lambda = xL, t = 3,N = 100)
 ```
 
-##La media geométrica
+## La media geométrica
 
 Como vemos la media aritmética no es la mejor medida para poder proyectar la comunidad.  Una medida que se ajusta mejor es la media geométrica. 
 
@@ -214,23 +216,23 @@ crec(lambda = xgL, t = 3,N = 100)
 
 ```
 
-##Ejercicio 1
+## Ejercicio 1
 
 Resolver el [ejercicio 1](https://ciespinosa.github.io/CrecimientoDensoIndependiente/)
 
-##Crecimiento exponencial continuo
+## Crecimiento exponencial continuo
 
 El modelo geométrico propone el crecimiento de la población como una serie de eventos reproductivos, así cada ciclo la población se reproduce en un único evento. 
 
 > - ¿Realmente las poblaciones crecen a saltos?
 
-##Ejemplo
+## Ejemplo
 
 Imaginemos que ponemos en una caja petri 1000 individuos de _E. coli_ y al siguiente día contamos la cantidad de bacterias y tenemos $10^10$ bacterias, eso implicaría que las bacterias tienen una tasa de incremento (lambda) de $10^7$ por día. 
 
 Pero las bacterias están reproduciéndose continuamente y de forma asíncrona. 
 
-##Incremento continuo
+## Incremento continuo
 
 Jacob Bernulli (1654), se dio cuenta que el crecimiento geométrico depende de la periodicidad que asumimos que ocurren los ciclos reproductivos. 
 Una tasa de $\lambda = 1.5$ anualmente, implicaría que la población incremente el 50% cada año, por lo que su __tasa de incremento discreto__ es $r_d = 0.5$. 
@@ -245,7 +247,7 @@ Podríamos generalizar como:
 $$N1 = N_0\biggl(1+  \frac{r_d}{n}\biggr)^n$$
 $$\frac{N1}{N0} = \biggl(1+  \frac{r_d}{n}\biggr)^n$$
 
-##Periodos infinitos
+## Periodos infinitos
 
 ```{r}
 n <- 1:100 #entre 1 y 100 periodos en el año
@@ -262,7 +264,7 @@ text(50, 1.6, bquote((1 + frac("r"["d"], "n"))^"n" == + .(round(N1[101]/N0, 3)))
 
 ```
 
-##La constante e
+## La constante e
 
 Como vemos cuando incrementamos el número de eventos reproductivos llegamos a una constante que es 2.718.
 
@@ -271,7 +273,7 @@ El crecimiento exponencial es:
 $$N_t = N_0e^{rt}$$
 en este caso r es la tasa intrínseca de crecimiento.
 
-##Ajustando el modelo
+## Ajustando el modelo
 
 Veamos como podemos ajustar un modelo de crecimiento exponencial continuo.
 
@@ -301,7 +303,7 @@ plot(marCrecE, type="l")
 
 ```
 
-##Efecto de r
+## Efecto de r
 
 Como vemos r tiene un efecto sobre el crecimiento, valores superiores a 0 implicarán un incremento de la población, mientras que valores debajo de cero implicarán una reducción de la población.
 
@@ -321,13 +323,13 @@ text(5,45, "r=0", font=2, cex=1.5)
 text(5,30, "r<0", font=2, cex=1.5)
 ```
 
-##Modelando datos: Simulando la dinámica
+## Modelando datos: Simulando la dinámica
 
 Hasta ahora hemos trabajado  con modelos deterministas usando una tasa de incremento promedio. Otra aproximación es simular la dinámica de la población con alguna cuantificación de incertidumbre.
 
 Analizar los datos y utilizarlos para calcular parámetros del modelo de forma aleatoria.
 
-##Aleatorizando r
+## Aleatorizando r
 
 Podríamos utilizar la variación de la tasa de incremento como una medida aleatoria y proyectar la población. Miremos los datos:
 
@@ -346,13 +348,13 @@ plot(Year[-1], obs.R, pch=19)
 abline(h = 1, lty = 3)
 ```
 
-##Variación de lambda
+## Variación de lambda
 
 ¿Qué pasa con la tasa de crecimiento? 
 
 Como se puede ver, lambda es muy variable y excepción de un dato, esta varía entre 1.5 y 0.5.  Podemos utilizar esta variación para construir nuestra simulación
 
-##Vamos a simular
+## Vamos a simular
 
 Simularemos el crecimiento de la población a 50 años, pero no utilizaremos una media geométrica de lambda.
 
@@ -365,7 +367,7 @@ sim.Rs <- sample(x = obs.R, size = years,
 
 Ahora tenemos nuestra tasa de incremento aleatoria para cada año.  
 
-##La predicción
+## La predicción
 
 Generamos un vector vacío para poder poner nuestra predicción.
 ```{r}
@@ -380,7 +382,7 @@ Ahora podemos graficar la población simulada
 plot(0:years, sim1, type="l")
 ```
 
-##Simulaciones
+## Simulaciones
 
 Tenemos una población simulada, sin embargo, cada que ejecutamos la función tenemos nuevos datos, para que podamos obtener información de esta simulación debemos generar múltiples corridas.
 
@@ -402,7 +404,7 @@ PopSim <- function(Rs, N0, years = 50, sims = 10) {
 
 ```
 
-##Simulaciones
+## Simulaciones
 
 Ahora, podemos simular la población y solo debemos incluir los datos de lambda (obs.R), el tamaño inicial de la población (N0) y la cantidad de simulaciones.
 
@@ -415,7 +417,7 @@ matplot(output/1000, type="l", ylim=c(0,10), ylab="Número/1000")
 dim(output)
 ```
 
-##Población resultante
+## Población resultante
 
 Extraemos el tamaño de la población en el último año2053, para poder analizar la proyección generada de la población.
 
@@ -424,7 +426,7 @@ N.2053 <- output[51, ]
 summary(N.2053, digits = 6)
 ```
 
-##Graficamos
+## Graficamos
 
 Grafiquemos los datos y veamos su distribución. Adicionamos los límites de un intervalo de confianza del 95%.
 
@@ -437,5 +439,5 @@ abline(v = log10(quantile(N.2053, prob = c(0.0275, 0.975))
                                       + 1), lty = 3)
 ```
 
-##Probabilidad de extinción
+## Probabilidad de extinción
 
