@@ -1,0 +1,87 @@
+@-webkit-keyframes color-change-5x {
+  0% {
+    color: #19dcea;
+  }
+  25% {
+    color: #b22cff;
+  }
+  50% {
+    color: #ea2222;
+  }
+  75% {
+    color: #f5be10;
+  }
+  100% {
+    color: #3bd80d;
+  }
+}
+@keyframes color-change-5x {
+  0% {
+    color: #19dcea;
+  }
+  25% {
+    color: #b22cff;
+  }
+  50% {
+    color: #ea2222;
+  }
+  75% {
+    color: #f5be10;
+  }
+  100% {
+    color: #3bd80d;
+  }
+}
+
+
+#title h1 {
+    background-color: #2d2d2d;
+    font-size: 3.50em;
+    color: #ffff00;
+}       
+
+mark {
+  background-color: #47474599;
+  color: white; 
+}
+
+.color-change-5x-background {
+    -webkit-animation: color-change-5x-background 2s linear infinite alternate both;
+            animation: color-change-5x-background 2s linear infinite alternate both;
+}
+
+
+@-webkit-keyframes color-change-5x-background {
+  0% {
+    background: #19dcea;
+  }
+  25% {
+    background: #b22cff;
+  }
+  50% {
+    background: #ea2222;
+  }
+  75% {
+    background: #f5be10;
+  }
+  100% {
+    background: #3bd80d;
+  }
+}
+@keyframes color-change-5x-background {
+  0% {
+    background: #19dcea;
+  }
+  25% {
+    background: #b22cff;
+  }
+  50% {
+    background: #ea2222;
+  }
+  75% {
+    background: #f5be10;
+  }
+  100% {
+    background: #3bd80d;
+  }
+}
